@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.elo7.cassandratest.converter.EmployeeConverter;
+import br.com.elo7.cassandratest.dto.EmployeeDTO;
 import br.com.elo7.cassandratest.model.Employee;
 import br.com.elo7.cassandratest.repository.EmployeeRepository;
 
@@ -22,7 +25,11 @@ import br.com.elo7.cassandratest.repository.EmployeeRepository;
 public class EmployeeController{
 
 	@Autowired
-	EmployeeRepository employeeRepository;
+	private EmployeeConverter converter;
+	@Autowired
+	private EmployeeRepository employeeRepository;
+	@Autowired
+	private Executor executor;
 
 	@GetMapping(value = "/healthcheck", produces = "application/json; charset=utf-8")
 	public String getHealthCheck()
@@ -75,7 +82,9 @@ public class EmployeeController{
 	}
 
 	@GetMapping("/employee/async/{id}")
-	public ListenableFuture<Employee> test(@PathVariable String id){
-		return employeeRepository.findOneById(id);
+	public CompletableFuture<EmployeeDTO> test(@PathVariable String id){
+		final CompletableFuture<Employee> futureEmployee = employeeRepository.findOneById(id);
+
+		return futureEmployee.thenApplyAsync(Employee::toDto, executor);
 	}
 }
