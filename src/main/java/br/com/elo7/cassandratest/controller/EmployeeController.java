@@ -52,8 +52,7 @@ public class EmployeeController{
 	}
 
 	@PutMapping("/employee/{id}")
-	public Optional<Employee> updateEmployee(@RequestBody Employee newEmployee, @PathVariable String id)
-	{
+	public Optional<Employee> updateEmployee(@RequestBody Employee newEmployee, @PathVariable String id) {
 		Optional<Employee> optionalEmp = employeeRepository.findById(id);
 		if (optionalEmp.isPresent()) {
 			Employee emp = optionalEmp.get();
@@ -73,8 +72,7 @@ public class EmployeeController{
 	}
 
 	@PostMapping("/employee")
-	public Employee addEmployee(@RequestBody Employee newEmployee)
-	{
+	public Employee addEmployee(@RequestBody Employee newEmployee) {
 		String id = String.valueOf(new Random().nextInt());
 		Employee emp = new Employee(id, newEmployee.getFirstName(), newEmployee.getLastName(), newEmployee.getEmail());
 		employeeRepository.save(emp);
@@ -83,8 +81,8 @@ public class EmployeeController{
 
 	@GetMapping("/employee/async/{id}")
 	public CompletableFuture<EmployeeDTO> test(@PathVariable String id){
-		final CompletableFuture<Employee> futureEmployee = employeeRepository.findOneById(id);
+		CompletableFuture<Employee> futureEmployee = employeeRepository.findOneById(id);
 
-		return futureEmployee.thenApplyAsync(Employee::toDto, executor);
+		return futureEmployee.thenApplyAsync(converter::toDto, executor);
 	}
 }
